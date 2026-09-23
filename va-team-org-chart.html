@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VA Team Structure</title>
+<meta name="description" content="Interactive org chart for The Property People Law VA team, built with PATRIVA.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+  :root{
+    --ink:#182338; --ink-soft:#4b5670; --paper:#eef0f5; --surface:#ffffff;
+    --line:#d3d8e2; --line-soft:#e4e7ee;
+    --blue:#33608f; --blue-soft:#e8eef7;
+    --teal:#1c7a6c; --teal-soft:#e4f3f0;
+    --gold:#9c7423; --gold-soft:#f5eddb;
+    --pending:#7a8091; --pending-soft:#eceef2;
+    --shadow: 0 1px 2px rgba(24,35,56,.06), 0 8px 24px -12px rgba(24,35,56,.18);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ink:#eef0f5; --ink-soft:#aab2c5; --paper:#141a28; --surface:#1b2233;
+      --line:#323c53; --line-soft:#242c40;
+      --blue:#7fa8d6; --blue-soft:#1e2c40;
+      --teal:#5fc2ae; --teal-soft:#152e2a;
+      --gold:#d9b463; --gold-soft:#2e2611;
+      --pending:#9aa1b3; --pending-soft:#232838;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 12px 28px -14px rgba(0,0,0,.6);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --ink:#eef0f5; --ink-soft:#aab2c5; --paper:#141a28; --surface:#1b2233;
+    --line:#323c53; --line-soft:#242c40;
+    --blue:#7fa8d6; --blue-soft:#1e2c40;
+    --teal:#5fc2ae; --teal-soft:#152e2a;
+    --gold:#d9b463; --gold-soft:#2e2611;
+    --pending:#9aa1b3; --pending-soft:#232838;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 12px 28px -14px rgba(0,0,0,.6);
+    color-scheme: dark;
+  }
+
+  *{box-sizing:border-box;}
+  html, body{width:100%; max-width:100%; overflow-x:hidden;}
+  body{background:var(--paper); color:var(--ink); font-family:"Public Sans",system-ui,sans-serif; margin:0;}
+  .wrap{max-width:1180px; margin:0 auto; padding:24px 16px 40px;}
+
+  .masthead{padding:4px 0 14px; border-bottom:1px solid var(--line-soft); margin-bottom:18px;}
+  .eyebrow{font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.09em; text-transform:uppercase; color:var(--ink-soft);}
+  h1{font-family:"Fraunces",Georgia,serif; font-weight:600; font-size:clamp(24px,4vw,34px); margin:4px 0 4px; text-wrap:balance;}
+  .sub{color:var(--ink-soft); font-size:14.5px; margin:0 0 16px; max-width:64ch;}
+
+  .toolbar{display:flex; flex-wrap:wrap; gap:10px; align-items:center;}
+  .search{position:relative; flex:1 1 220px; max-width:320px;}
+  .search input{width:100%; padding:9px 12px 9px 32px; border-radius:9px; border:1px solid var(--line); background:var(--surface); color:var(--ink); font:inherit; font-size:13.5px;}
+  .search input:focus{outline:2px solid var(--blue); outline-offset:1px;}
+  .search svg{position:absolute; left:9px; top:50%; transform:translateY(-50%); width:14px; height:14px; color:var(--ink-soft);}
+
+  .legend{display:flex; flex-wrap:wrap; gap:8px 14px; font-size:12px; color:var(--ink-soft); align-items:center;}
+  .legend .dot{display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:5px; vertical-align:middle;}
+  .legend .swatch{display:inline-flex; align-items:center;}
+
+  .btn{font:inherit; font-size:12.5px; font-weight:600; border-radius:8px; border:1px solid var(--line); background:var(--surface); color:var(--ink); padding:7px 11px; cursor:pointer;}
+  .btn:hover{border-color:var(--blue);}
+
+  /* ---- chart ---- */
+  .chart-viewport{overflow:hidden; position:relative; margin-top:6px; width:100%;}
+  .chart-scale{transform-origin: 0 0; display:flex; width:100%;}
+  .tree, .tree ul{list-style:none; margin:0; padding:0;}
+  .tree{display:flex; padding:6px 4px 26px;}
+  .tree ul{display:flex; padding-top:26px; position:relative; align-items:flex-start;}
+  .tree li{flex:1; text-align:center; position:relative; padding:26px 9px 0;}
+  .tree li::before, .tree li::after{content:""; position:absolute; top:0; width:50%; height:26px; border-top:2px solid var(--line);}
+  .tree li::before{right:50%;}
+  .tree li::after{left:50%; border-left:2px solid var(--line);}
+  .tree li:only-child{padding-top:0;}
+  .tree li:only-child::before, .tree li:only-child::after{display:none;}
+  .tree li:first-child::before, .tree li:last-child::after{border:0 none;}
+  .tree li:last-child::before{border-right:2px solid var(--line); border-radius:0 6px 0 0;}
+  .tree li:first-child::after{border-radius:6px 0 0 0;}
+  .tree > li{padding-top:0;}
+  .tree > li::before, .tree > li::after{display:none;}
+  .branch > ul::before{content:""; position:absolute; top:0; left:50%; height:26px; border-left:2px solid var(--line);}
+  .branch.collapsed > ul{display:none;}
+  .branch{position:relative; display:inline-block;}
+
+  .card{display:inline-block; width:186px; background:var(--surface); border:1px solid var(--line); border-radius:11px; box-shadow:var(--shadow); text-align:left; position:relative; vertical-align:top;}
+  .card.pending{border-style:dashed; background:var(--pending-soft);}
+  .card-top{padding:11px 12px 9px; cursor:pointer;}
+  .card-top:hover{background:var(--line-soft);}
+  .card-top:focus-visible{outline:2px solid var(--blue); outline-offset:-2px;}
+  .card .name{font-weight:700; font-size:13.5px; line-height:1.25; margin:0 0 3px;}
+  .card .role{font-size:11.5px; color:var(--ink-soft); line-height:1.3; margin:0;}
+  .card .badge{display:inline-block; margin-top:7px; font-family:"IBM Plex Mono",monospace; font-size:9.5px; letter-spacing:.04em; text-transform:uppercase; padding:2.5px 6px; border-radius:5px; font-weight:600;}
+  .badge.leadership{background:var(--line-soft); color:var(--ink);}
+  .badge.claims{background:var(--blue-soft); color:var(--blue);}
+  .badge.discovery{background:var(--teal-soft); color:var(--teal);}
+  .badge.support{background:var(--gold-soft); color:var(--gold);}
+  .badge.pending-tag{background:var(--pending-soft); color:var(--pending); border:1px dashed var(--pending);}
+  .dual-note{font-size:9.5px; color:var(--ink-soft); margin-top:5px; font-style:italic;}
+  .toggle-hint{margin-top:8px; font-size:10.5px; font-weight:600; color:var(--blue); display:flex; align-items:center; gap:3px;}
+  .toggle-hint .chev{transition:transform .15s ease; display:inline-block;}
+  .card.expanded{border-color:var(--blue); box-shadow:0 0 0 3px var(--blue-soft), var(--shadow);}
+  .card.expanded .toggle-hint .chev{transform:rotate(180deg);}
+
+  [hidden]{display:none !important;}
+
+  .collapse-btn{position:absolute; top:-11px; right:50%; transform:translateX(50%); width:20px; height:20px; border-radius:50%; background:var(--surface); border:1px solid var(--line); font-size:11px; line-height:1; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--ink-soft); z-index:2;}
+  .collapse-btn:hover{border-color:var(--blue); color:var(--blue);}
+
+  li.dim .card{opacity:.28;}
+  li.match .card{border-color:var(--gold); box-shadow:0 0 0 3px var(--gold-soft), var(--shadow);}
+
+  /* ---- floating detail popover: fully independent of the tree's layout, so it can never overlap or reflow anything ---- */
+  .popover{position:fixed; z-index:60; width:min(300px, calc(100vw - 32px)); max-height:min(360px, calc(100vh - 32px)); overflow-y:auto; background:var(--surface); border:1px solid var(--line); border-radius:12px; box-shadow:0 4px 10px rgba(24,35,56,.12), 0 20px 45px -18px rgba(24,35,56,.35); padding:14px 16px 16px; font-size:12.5px; line-height:1.55; visibility:hidden; opacity:0; transform:translateY(-4px); transition:opacity .12s ease, transform .12s ease; left:0; top:0;}
+  .popover.open{visibility:visible; opacity:1; transform:translateY(0);}
+  .popover .pop-head{display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:9px;}
+  .popover .pop-name{font-family:"Fraunces",Georgia,serif; font-weight:600; font-size:15px; margin:0 0 2px;}
+  .popover .pop-role{font-size:11.5px; color:var(--ink-soft); margin:0;}
+  .popover .pop-close{border:none; background:none; font-size:19px; line-height:1; color:var(--ink-soft); cursor:pointer; padding:0 2px; flex-shrink:0;}
+  .popover .pop-badges{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;}
+  .popover h4{font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-soft); font-family:"IBM Plex Mono",monospace; margin:0 0 7px;}
+  .popover ul{margin:0; padding-left:17px;}
+  .popover li{margin:5px 0;}
+  .popover .flag{background:var(--gold-soft); border:1px solid var(--gold); color:var(--gold); border-radius:8px; padding:9px 11px; font-size:11.5px; margin-top:11px; line-height:1.5;}
+
+  footer{margin-top:26px; font-size:11.5px; color:var(--ink-soft); border-top:1px solid var(--line-soft); padding-top:14px;}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="masthead">
+    <div class="eyebrow">The Property People Law &times; PATRIVA</div>
+    <h1>VA Team Structure</h1>
+    <p class="sub">Live reference for the current VA org structure, department heads, and the two backup roles being hired. Click any card to expand its full role description right below it.</p>
+    <div class="toolbar">
+      <div class="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input id="search" type="text" placeholder="Find a name, role, or department&hellip;" autocomplete="off">
+      </div>
+      <button class="btn" id="expandAll">Expand teams</button>
+      <button class="btn" id="collapseAll">Collapse teams</button>
+    </div>
+    <div class="legend" style="margin-top:12px;">
+      <span class="swatch"><span class="dot" style="background:var(--blue)"></span>Ivan's dept &mdash; Claims / Filings / Hearings</span>
+      <span class="swatch"><span class="dot" style="background:var(--teal)"></span>Fatima's dept &mdash; Mediations / Discovery / Depositions</span>
+      <span class="swatch"><span class="dot" style="background:var(--gold)"></span>Client-facing &amp; support</span>
+      <span class="swatch"><span class="dot" style="border:1.5px dashed var(--pending); background:transparent"></span>Pending hire</span>
+      <span class="swatch"><em>italic note</em> = dual reporting line</span>
+    </div>
+  </div>
+
+  <div class="chart-viewport" id="chartViewport">
+    <div class="chart-scale" id="chartScale">
+      <ul class="tree" id="tree"></ul>
+    </div>
+  </div>
+
+  <footer>Updated 9/23/26 &middot; Built for internal reference &mdash; verify against the live Firm Directory before relying on reporting-line changes still in progress.</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var DATA = {
+    danny: {name:"Danny Ilani (DMI)", role:"Founding Attorney &amp; Firm Owner", dept:"leadership", parent:null,
+      duties:["Owns final sign-off on firm structure, hiring headcount, and department changes.","Direct reports on Closings and Accounting; dual reporting line on Reception and Client Relations/Intake."]},
+    patricia: {name:"Patricia Luna-Galvez (PG)", role:"Chief of Staff, The Property People &middot; Head of PATRIVA", dept:"leadership", parent:"danny",
+      duties:["Ensures client success and monitors #client-feedback.","Oversees firm social media marketing.","Sends Google Review requests to clients via Levitate.","Assists with administrative and technical matters; ad hoc support to in-house attorneys.","Handles VA onboarding, training, and transitions; hosts VA meetings.","Manages workflow guides and SOPs.","Monitors firm KPIs and industry trends."]},
+
+    ivan: {name:"Ivan Mallari (IM)", role:"Department Head &mdash; Claims, Filings, Hearings", dept:"claims", parent:"patricia",
+      duties:["Oversees day-to-day operations across Claims, Filings, and Hearings; escalation point for Hannah, Kevin, and the incoming backup VA.","Coordinates all hearings, including Agreed Orders/court orders through Court Maps and hearing cancellations.","Files and schedules MTC Depos, MTC Disco, and MTECO for hearings.","Hands off NOI/CRN filing duties to Kevin, with a dedicated 1:1 training session.","Hands off Intake (intake email, client relations email, retainer follow-up, marking retainers signed) to Kamille.","Personally learning the Claims process to train the incoming backup VA.","Documenting Filings and Hearings procedures (vary by county/state).","Leading a case-file naming/renaming standardization project (background priority)."],
+      flag:"Target: complete the Intake, NOI/CRN, and documentation handoffs within ~2&ndash;3.5 weeks of 9/16/26."},
+    fatima: {name:"Fatima Dagpin (FD)", role:"Department Head &mdash; Mediations, Discovery, Depositions", dept:"discovery", parent:"patricia",
+      duties:["Department Head oversight of Mediations, Discovery, and Depositions.","Keeps full ownership of Calendar Management (no separate Calendar Manager role) and Service/E-Service, including Trial Orders.","Manages E-Service emails and receipt of all filings; forwards NOI Responses, Objections to NPNP, and CRN responses to Intake &amp; Filings.","Requests AOs for Defendants' METs, with follow-ups every 3 business days.","Day-to-day Mediation coordination (Notices of Mediation/Arbitration, prep calls) transitions to the incoming backup VA once hired.","To-do: update the Notion e-service guide with South Carolina steps.","To-do: circulate the calendar guide to the VA team; clean up the current calendar.","To-do: personally learn the Discovery process as overseeing Department Head."]},
+
+    hannah: {name:"Hannah Gumba (HG)", role:"Legal Assistant &mdash; Claims", dept:"claims", parent:"ivan",
+      duties:["Dedicated full-time to the Claims Department under Ivan &mdash; coverage decisions and deadline tracking for the firm's property damage claims.","Will have backup coverage from the incoming Claims/Filings/Hearings backup VA once hired."],
+      flag:"Updated 9/22/26: prior general call-handling duties removed (absorbed elsewhere). Detailed day-to-day Claims workflow to be added."},
+    kevin: {name:"Kevin Luna (KL)", role:"Legal Assistant &mdash; Filings, Hearings", dept:"claims", parent:"ivan",
+      duties:["Serves Summons issued in LSOP; files lawsuits in the E-Filing Portal.","Manages filings incl. NOAs, templates, motions, requests for copies.","Files NPNP (10-day OC objection window); files CNO and serves via L &amp; L Process if OC misses the deadline.","Coordinates hearings, Agreed Orders, hearing cancellations; files/schedules MTC Depos, MTC Disco, MTECO.","Assists in calendaring Trial Orders, Case Management Plans, and the firm's Trial List."],
+      flag:"Incoming: taking over NOI/CRN filing from Ivan (CRN filing, NOI filing + 10-day tracking, Practice Panther matter generation, NOI monitoring sheet) via a dedicated 1:1 &mdash; target ~2&ndash;3.5 weeks from 9/16/26."},
+    ivanBackup: {name:"Back Up VA &ndash; Ivan's Department", role:"Backup VA &mdash; Claims (primary) / Filings &amp; Hearings (secondary)", dept:"claims", parent:"ivan", pending:true,
+      duties:["Primary: backup coverage for Hannah on Claims &mdash; coverage decisions and deadline tracking.","Secondary, once ramped: cross-trains into Filings and Hearings support.","Secondary check on calendar entries for Claims/Filings/Hearings once ramped."],
+      flag:"Placeholder &mdash; not yet hired. Update with the hire's name once placed; confirm final duties against the job description."},
+
+    rachel: {name:"Rachel Simbre (RS)", role:"Legal Assistant &mdash; Discovery", dept:"discovery", parent:"fatima",
+      duties:["Follows up on Defendant's Discovery responses; collaborates with the in-house Discovery Team.","Monitors the 30-day Discovery deadline.","Files and serves Discovery Responses and Responsive Documents.","Submits METs regarding Discovery as instructed; files Expert ROGs and RFPs.","Drafts Discovery responses on behalf of clients for attorney review.","Trains the incoming Mediations/Discovery backup VA directly on Discovery once hired."]},
+    zorayda: {name:"Zorayda Sarita (ZS)", role:"Legal Assistant &mdash; Depositions (Plaintiff's)", dept:"discovery", parent:"fatima",
+      duties:["Oversees all deposition scheduling; audits the firm's calendar for depositions.","Coordinates and schedules depositions and prep calls for Plaintiff(s).","Coordinates third-party depositions/prep calls for Plaintiff, incl. Public Adjuster (PA), Engineer &amp; Expert, Corporate Representatives (CR)."],
+      flag:"No backup coverage planned for Depositions at this time; Zorayda/Lyn have pushed back on cross-training in the past."},
+    lyn: {name:"Lyn Martinez (GG)", role:"Legal Assistant &mdash; Depositions (Defendant's)", dept:"discovery", parent:"fatima",
+      duties:["Coordinates and schedules third-party depositions for Defendant's side: Field Adjuster (FA), Desk Adjuster (DA), Corporate Representative (CR).","Notes CAL entries that need to be reset; audits the firm's calendar for depositions with Zorayda.","Schedules and manages deposition events on the calendar; generates Zoom links in Parrot.","Maintains process-server communication and monitors service status.","Drafts/files Notices of Taking Deposition (NOTD); prepares/files NOTVD, NOC, and transcripts to Dropbox.","Requests deposition transcripts from Parrot or other court reporting services."]},
+    fatimaBackup: {name:"Back Up VA &ndash; Fatima's Department", role:"Backup VA &mdash; Mediations (primary) / Discovery (secondary)", dept:"discovery", parent:"fatima", pending:true,
+      duties:["Primary: coordinates mediations &mdash; drafts Notices of Mediation/Arbitration, schedules prep calls, coordinates between the firm, OC, and clients.","Secondary, once ramped: backup coverage for Discovery, trained directly by Rachel."],
+      flag:"Candidate in the pipeline: Atibiel (follow-up sent 9/21/26). Placeholder until hired &mdash; confirm final duties against the job description."},
+
+    kamille: {name:"Kamille Causon", role:"Client Relations Specialist", dept:"support", parent:"ivan", dual:"Danny (leads) &amp; Patricia",
+      duties:["Manages Clio Grow &mdash; retainer agreements from draft through signed execution.","Handles all client inquiries and communication on behalf of the VA team.","Owns the Intake department end-to-end, incl. intake and client relations inboxes.","Primary point of contact for all client-facing calls.","Coordinates lead handoff with Reception to prevent duplicate outreach.","Escalates unresolved client-facing issues directly to Patricia."]},
+    mariella: {name:"Mariella Dizon", role:"Legal Office Coordinator (Reception)", dept:"support", parent:"patricia", dual:"Danny",
+      duties:["Answers and routes incoming firm calls to the correct department.","Greets and assists office visitors, including opposing counsel and vendors.","Cross-checks matter-level calendar entries in Clio against the master Outlook calendar &mdash; flags discrepancies to Fatima's department.","Handles incoming/outgoing firm mail; tracks and reorders office supplies.","Backup phone/email coverage for Client Relations &amp; Intake during high volume."]},
+    manuelle: {name:"Manuelle Talamo (MT)", role:"Legal Assistant &mdash; Closings", dept:"support", parent:"danny",
+      duties:["Files Notice of Settlements and Notices of Voluntary Dismissal (NOVDs) when applicable.","Requests proof of mortgage from clients; manages preferred mailing address for settlement checks.","Moves settled/dismissed cases to the Closed Files tab on the Master Case List.","Handles LSOP payments for the Filings Department.","Requests/follows up on check re-issuance to opposing counsel."]},
+    jonah: {name:"Jonah Bucoy (JB)", role:"Legal Assistant &mdash; Accounting", dept:"support", parent:"danny",
+      duties:["Follows up with clients on executed releases; follows up on releases from OC (Mondays/Thursdays).","Manages FIGA follow-ups for check re-issuance and pending checks (covers for Manuelle when away).","Requests W-9s from PAs and other referral sources, saved to Dropbox.","Moves settled/dismissed cases to the Closed tab on the scheduling spreadsheet."]}
+  };
+
+  // build children lookup
+  Object.keys(DATA).forEach(function(id){ DATA[id].id = id; DATA[id].children = []; });
+  Object.keys(DATA).forEach(function(id){
+    var p = DATA[id].parent;
+    if(p && DATA[p]) DATA[p].children.push(id);
+  });
+
+  function badgeLabel(dept){
+    return {leadership:"Leadership", claims:"Ivan's dept", discovery:"Fatima's dept", support:"Client-facing / Support"}[dept] || dept;
+  }
+
+  // ---- floating detail popover (appended to <body>, outside the scaled/clipped tree) ----
+  var popover = document.createElement("div");
+  popover.className = "popover";
+  popover.setAttribute("role","dialog");
+  popover.innerHTML =
+    '<div class="pop-head"><div><p class="pop-name" id="popName"></p><p class="pop-role" id="popRole"></p></div>' +
+    '<button class="pop-close" type="button" id="popClose" aria-label="Close">&times;</button></div>' +
+    '<div class="pop-badges" id="popBadges"></div>' +
+    '<h4>Responsibilities</h4><ul id="popList"></ul>' +
+    '<div id="popFlag"></div>';
+  document.body.appendChild(popover);
+
+  var popName = popover.querySelector("#popName"),
+      popRole = popover.querySelector("#popRole"),
+      popBadges = popover.querySelector("#popBadges"),
+      popList = popover.querySelector("#popList"),
+      popFlag = popover.querySelector("#popFlag"),
+      popClose = popover.querySelector("#popClose");
+
+  var activeTop = null, activeCard = null;
+
+  function closePopover(){
+    popover.classList.remove("open");
+    if(activeTop){
+      activeTop.setAttribute("aria-expanded","false");
+      var hint = activeTop.querySelector(".hint-text");
+      if(hint) hint.textContent = "Details";
+    }
+    if(activeCard) activeCard.classList.remove("expanded");
+    activeTop = null; activeCard = null;
+  }
+
+  function openPopover(id, cardEl, topEl){
+    var d = DATA[id];
+    popName.innerHTML = d.name;
+    popRole.innerHTML = d.role;
+    popBadges.innerHTML = '<span class="badge ' + (d.pending ? "pending-tag" : d.dept) + '">' + (d.pending ? "Pending hire" : badgeLabel(d.dept)) + '</span>' +
+      (d.dual ? '<span class="badge support">Dual report: ' + d.dual + '</span>' : '');
+    popList.innerHTML = d.duties.map(function(x){ return "<li>" + x + "</li>"; }).join("");
+    popFlag.innerHTML = d.flag ? '<div class="flag">' + d.flag + '</div>' : '';
+
+    if(activeCard && activeCard !== cardEl) closePopover();
+
+    popover.classList.add("open");
+    // measure, then position below the card (flip above if there's no room)
+    var rect = topEl.getBoundingClientRect();
+    var pw = popover.offsetWidth, ph = popover.offsetHeight;
+    var left = rect.left + rect.width / 2 - pw / 2;
+    left = Math.max(8, Math.min(left, window.innerWidth - pw - 8));
+    var top = rect.bottom + 8;
+    if(top + ph > window.innerHeight - 8){
+      var aboveTop = rect.top - ph - 8;
+      top = aboveTop > 8 ? aboveTop : Math.max(8, window.innerHeight - ph - 8);
+    }
+    popover.style.left = left + "px";
+    popover.style.top = top + "px";
+
+    activeTop = topEl; activeCard = cardEl;
+    topEl.setAttribute("aria-expanded","true");
+    var hint = topEl.querySelector(".hint-text");
+    if(hint) hint.textContent = "Hide";
+    cardEl.classList.add("expanded");
+  }
+
+  popClose.addEventListener("click", closePopover);
+  document.addEventListener("keydown", function(e){ if(e.key === "Escape") closePopover(); });
+  document.addEventListener("click", function(e){
+    if(!popover.classList.contains("open")) return;
+    if(popover.contains(e.target)) return;
+    if(e.target.closest && e.target.closest(".card-top")) return; // let that card's own click handler decide (toggle vs. switch)
+    closePopover();
+  }, true);
+  window.addEventListener("scroll", function(){ if(popover.classList.contains("open")) closePopover(); }, true);
+
+  function renderNode(id){
+    var d = DATA[id];
+    var hasKids = d.children.length > 0;
+    var li = document.createElement("li");
+    li.dataset.id = id;
+    li.dataset.search = (d.name + " " + d.role + " " + badgeLabel(d.dept) + " " + d.duties.join(" ")).toLowerCase();
+
+    var branchWrap = document.createElement("div");
+    branchWrap.className = "branch";
+
+    var card = document.createElement("div");
+    card.className = "card" + (d.pending ? " pending" : "");
+
+    var top = document.createElement("div");
+    top.className = "card-top";
+    top.tabIndex = 0;
+    top.setAttribute("role","button");
+    top.setAttribute("aria-expanded","false");
+    top.innerHTML =
+      '<p class="name">' + d.name + '</p>' +
+      '<p class="role">' + d.role + '</p>' +
+      '<span class="badge ' + (d.pending ? "pending-tag" : d.dept) + '">' + (d.pending ? "Pending hire" : badgeLabel(d.dept)) + '</span>' +
+      (d.dual ? '<div class="dual-note">also reports to ' + d.dual + '</div>' : '') +
+      '<div class="toggle-hint"><span class="chev">&#9662;</span><span class="hint-text">Details</span></div>';
+
+    top.addEventListener("click", function(e){
+      e.stopPropagation();
+      if(activeTop === top){ closePopover(); return; }
+      openPopover(id, card, top);
+    });
+    top.addEventListener("keydown", function(e){ if(e.key==="Enter" || e.key===" "){ e.preventDefault(); top.click(); } });
+
+    card.appendChild(top);
+    branchWrap.appendChild(card);
+
+    if(hasKids){
+      var btn = document.createElement("button");
+      btn.className = "collapse-btn";
+      btn.type = "button";
+      btn.textContent = "−";
+      btn.setAttribute("aria-label","Collapse/expand team");
+      btn.addEventListener("click", function(e){
+        e.stopPropagation();
+        branchWrap.classList.toggle("collapsed");
+        btn.textContent = branchWrap.classList.contains("collapsed") ? "+" : "−";
+        requestAnimationFrame(fitChart);
+      });
+      branchWrap.appendChild(btn);
+
+      var ul = document.createElement("ul");
+      d.children.forEach(function(cid){ ul.appendChild(renderNode(cid)); });
+      branchWrap.appendChild(ul);
+    }
+
+    li.appendChild(branchWrap);
+    return li;
+  }
+
+  var treeRoot = document.getElementById("tree");
+  treeRoot.appendChild(renderNode("danny"));
+
+  // ---- scale the whole chart to fit the viewport width, no scrollbar ----
+  var viewport = document.getElementById("chartViewport");
+  var scaleWrap = document.getElementById("chartScale");
+
+  function fitChart(){
+    try{
+      scaleWrap.style.transform = "none";
+      var natW = scaleWrap.scrollWidth;
+      var natH = scaleWrap.scrollHeight;
+      var availW = viewport.clientWidth || natW;
+      var scale = Math.min(1, availW / natW);
+      var offsetX = Math.max(0, (availW - natW * scale) / 2);
+      scaleWrap.style.transform = "translateX(" + offsetX + "px) scale(" + scale + ")";
+      viewport.style.height = Math.ceil(natH * scale) + "px";
+    }catch(e){}
+  }
+
+  requestAnimationFrame(function(){ requestAnimationFrame(fitChart); });
+  window.addEventListener("load", fitChart);
+
+  var resizeTimer;
+  window.addEventListener("resize", function(){
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(fitChart, 120);
+  });
+
+  // search
+  var searchInput = document.getElementById("search");
+  searchInput.addEventListener("input", function(){
+    var q = searchInput.value.trim().toLowerCase();
+    var items = treeRoot.querySelectorAll("li");
+    items.forEach(function(li){
+      li.classList.remove("dim","match");
+      if(!q) return;
+      if(li.dataset.search && li.dataset.search.indexOf(q) !== -1){
+        li.classList.add("match");
+      } else {
+        li.classList.add("dim");
+      }
+    });
+  });
+
+  // expand/collapse all teams
+  document.getElementById("collapseAll").addEventListener("click", function(){
+    treeRoot.querySelectorAll(".branch").forEach(function(b){
+      if(b.querySelector(":scope > ul")){ b.classList.add("collapsed"); var btn=b.querySelector(".collapse-btn"); if(btn) btn.textContent="+"; }
+    });
+    requestAnimationFrame(fitChart);
+  });
+  document.getElementById("expandAll").addEventListener("click", function(){
+    treeRoot.querySelectorAll(".branch.collapsed").forEach(function(b){
+      b.classList.remove("collapsed"); var btn=b.querySelector(".collapse-btn"); if(btn) btn.textContent="−";
+    });
+    requestAnimationFrame(fitChart);
+  });
+})();
+</script>
+</body>
+</html>
